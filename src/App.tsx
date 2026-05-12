@@ -884,7 +884,16 @@ function ChatPanel({ code, t }:any) {
     setInput(""); const um={id:Date.now(),role:"user",content:m,time:Date.now()};
     const lm={id:Date.now()+1,role:"ai",content:"",time:Date.now(),loading:true};
     setMsgs(p=>[...p,um,lm]); setLoading(true);
-    try { const r=await aiChat(m,code,msgs); setMsgs(p=>p.map(x=>x.loading?{...x,content:r,loading:false}:x)); }
+    try {
+  const r = await aiChat(m, code, msgs);
+  setMsgs(p =>
+    p.map(x =>
+      (x as any).loading
+        ? { ...x, content: r, loading: false }
+        : x
+    )
+  );
+}
     catch { setMsgs(p=>p.map(x=>x.loading?{...x,content:"AI unavailable. Try again.",loading:false}:x)); }
     setLoading(false);
   };
@@ -959,56 +968,46 @@ function ComplexityPanel({ results, t }:any) {
 // ─────────────────────────────────────────────────────────────────
 // HISTORY PANEL (inline)
 // ─────────────────────────────────────────────────────────────────
-function HistoryPanel({ t, onRestoreCode }:any) {
-  const [history,setHistory]=useState<any[]>([]);
-  const [sel,setSel]=useState<number|null>(null);
-  const [filter,setFilter]=useState("all");
-  const [confirm,setConfirm]=useState(false);
-  useEffect(()=>setHistory(loadHistory()),[]);
-  const scoreColor=(v:number)=>v>=7?t.green:v>=4?t.orange:t.red;
-  const filtered=history.filter(h=>filter==="critical"?h.critical>0:filter==="clean"?h.critical===0&&h.warnings===0:true);
-  if(!history.length) return <div style={{padding:"60px",textAlign:"center",color:t.textFaint,fontFamily:"'JetBrains Mono',monospace",fontSize:13}}>🕐 No scan history yet. Run your first analysis!</div>;
-  return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      <div style={{display:"flex",gap:8,flexWrap:"wrap",alignItems:"center"}}>
-        {["all","critical","clean"].map(f=><button key={f} onClick={()=>setFilter(f)} style={{padding:"3px 10px",fontSize:10,borderRadius:20,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",transition:"all 0.18s",background:filter===f?t.blue:"transparent",color:filter===f?"#fff":t.textFaint,border:`1px solid ${filter===f?t.blue:t.border2}`}}>{f.charAt(0).toUpperCase()+f.slice(1)}</button>)}
-        <span style={{fontSize:10,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace"}}>{filtered.length} scan{filtered.length!==1?"s":""}</span>
-        <button onClick={()=>{if(confirm){localStorage.removeItem(HIST_KEY);setHistory([]);setConfirm(false);}else{setConfirm(true);setTimeout(()=>setConfirm(false),3000);}}} style={{marginLeft:"auto",padding:"3px 10px",fontSize:10,borderRadius:6,background:"transparent",border:`1px solid ${confirm?t.red:t.border2}`,color:confirm?t.red:t.textFaint,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",transition:"all 0.18s"}}>{confirm?"Confirm?":"Clear all"}</button>
-      </div>
-      {filtered.map((h:any,idx:number)=>{
-        const open=sel===h.id;
-        return (
-          <div key={h.id} onClick={()=>setSel(open?null:h.id)} style={{background:t.card,border:`1px solid ${open?t.blue+"50":t.border}`,borderRadius:12,cursor:"pointer",animation:`slideLeft 0.22s ${idx*0.04}s both`,overflow:"hidden"}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,padding:"11px 14px"}}>
-              <span style={{fontSize:9,padding:"2px 9px",borderRadius:4,background:`${t.blue}15`,color:t.blue,fontFamily:"'JetBrains Mono',monospace",fontWeight:700}}>{h.language}</span>
-              <span style={{fontSize:11,color:t.text,fontFamily:"'JetBrains Mono',monospace",flex:1}}>{h.lines} lines · {h.issueCount} issues</span>
-              <span style={{fontSize:9,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace"}}>{relTime(h.date)}</span>
-              {h.critical>0&&<span style={{fontSize:9,padding:"2px 7px",borderRadius:4,background:t.redBg,color:t.redText,fontFamily:"'JetBrains Mono',monospace"}}>{h.critical} crit</span>}
-              {h.critical===0&&h.warnings===0&&<span style={{fontSize:9,padding:"2px 7px",borderRadius:4,background:t.greenBg,color:t.green,fontFamily:"'JetBrains Mono',monospace"}}>clean</span>}
-              <span style={{fontSize:9,color:t.textFaint}}>{open?"▲":"▾"}</span>
-            </div>
-            {open && (
-              <div style={{borderTop:`1px solid ${t.border}`,padding:"12px 14px",animation:"fadeUp 0.2s both"}}>
-                {h.scores && Object.entries(h.scores).map(([k,v]:any)=>(
-                  <div key={k} style={{display:"flex",alignItems:"center",gap:8,marginBottom:5}}>
-                    <span style={{fontSize:9,color:t.textDim,fontFamily:"'JetBrains Mono',monospace",width:90,textTransform:"capitalize"}}>{k}</span>
-                    <div style={{flex:1,height:3,background:t.border,borderRadius:2}}><div style={{height:3,width:`${(v/10)*100}%`,background:scoreColor(v),borderRadius:2}}/></div>
-                    <span style={{fontSize:9,color:scoreColor(v),fontFamily:"'JetBrains Mono',monospace",width:24,textAlign:"right",fontWeight:700}}>{v}</span>
-                  </div>
-                ))}
-                {h.summary && <div style={{fontSize:10,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace",lineHeight:1.6,marginTop:8,marginBottom:10}}>{h.summary.slice(0,180)}</div>}
-                <div style={{display:"flex",gap:8}}>
-                  <button onClick={e=>{e.stopPropagation();onRestoreCode(h.codeSnippet,h.language);}} style={{padding:"5px 12px",fontSize:11,borderRadius:8,cursor:"pointer",background:`linear-gradient(135deg,${t.blueDark},${t.blue})`,color:"#fff",border:"none",fontFamily:"'JetBrains Mono',monospace",fontWeight:600}}>Load Code</button>
-                  <button onClick={e=>e.stopPropagation()} style={{padding:"5px 12px",fontSize:11,borderRadius:8,cursor:"pointer",background:"transparent",border:`1px solid ${t.border2}`,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace"}} onClick={(e:any)=>{e.stopPropagation();setSel(null);}}>Close</button>
-                </div>
-              </div>
-            )}
-          </div>
-        );
-      })}
-    </div>
-  );
-}
+<div style={{display:"flex",gap:8}}>
+  <button
+    onClick={e=>{
+      e.stopPropagation();
+      onRestoreCode(h.codeSnippet,h.language);
+    }}
+    style={{
+      padding:"5px 12px",
+      fontSize:11,
+      borderRadius:8,
+      cursor:"pointer",
+      background:`linear-gradient(135deg,${t.blueDark},${t.blue})`,
+      color:"#fff",
+      border:"none",
+      fontFamily:"'JetBrains Mono',monospace",
+      fontWeight:600
+    }}
+  >
+    Load Code
+  </button>
+
+  <button
+    style={{
+      padding:"5px 12px",
+      fontSize:11,
+      borderRadius:8,
+      cursor:"pointer",
+      background:"transparent",
+      border:`1px solid ${t.border2}`,
+      color:t.textFaint,
+      fontFamily:"'JetBrains Mono',monospace"
+    }}
+    onClick={(e:any)=>{
+      e.stopPropagation();
+      setSel(null);
+    }}
+  >
+    Close
+  </button>
+</div>
 
 // ─────────────────────────────────────────────────────────────────
 // SETTINGS PANEL (inline)
