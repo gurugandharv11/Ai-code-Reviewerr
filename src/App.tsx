@@ -874,89 +874,429 @@ function OverviewPanel({ results, t }:any) {
 // ─────────────────────────────────────────────────────────────────
 // CHAT PANEL
 // ─────────────────────────────────────────────────────────────────
-function ChatPanel({ code, t }:any) {
-  const [msgs,setMsgs]=useState([{id:1,role:"ai",content:"👋 Hi! I'm Guru AI. Ask me anything about your code — security, performance, or best practices.",time:Date.now()}]);
-  const [input,setInput]=useState(""); const [loading,setLoading]=useState(false);
-  const bottomRef=useRef<HTMLDivElement>(null);
-  useEffect(()=>bottomRef.current?.scrollIntoView({behavior:"smooth"}),[msgs]);
-  const send=async(text?:string)=>{
-    const m=(text||input).trim(); if(!m||loading)return;
-    setInput(""); const um={id:Date.now(),role:"user",content:m,time:Date.now()};
-    const lm={id:Date.now()+1,role:"ai",content:"",time:Date.now(),loading:true};
-    setMsgs(p=>[...p,um,lm]); setLoading(true);
-    try {
-  const r = await aiChat(m, code, msgs);
-  setMsgs(p =>
-    p.map(x =>
-      (x as any).loading
-        ? { ...x, content: r, loading: false }
-        : x
-    )
+function ChatPanel({ code, t }: any) {
+  const [msgs, setMsgs] = useState<Msg[]>([
+    {
+      id: 1,
+      role: "ai",
+      content:
+        "👋 Hi! I'm Guru AI. Ask me anything about your code — security, performance, or best practices.",
+      time: Date.now(),
+    },
+  ]);
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const bottomRef = useRef<HTMLDivElement>(null);
+ 
+  useEffect(
+    () => bottomRef.current?.scrollIntoView({ behavior: "smooth" }),
+    [msgs]
   );
-}
-    catch { setMsgs(p=>p.map(x=>x.loading?{...x,content:"AI unavailable. Try again.",loading:false}:x)); }
+ 
+  const send = async (text?: string) => {
+    const m = (text || input).trim();
+    if (!m || loading) return;
+    setInput("");
+    const um: Msg = { id: Date.now(), role: "user", content: m, time: Date.now() };
+    const lm: Msg = {
+      id: Date.now() + 1,
+      role: "ai",
+      content: "",
+      time: Date.now(),
+      loading: true,
+    };
+    setMsgs((p) => [...p, um, lm]);
+    setLoading(true);
+    try {
+      const r = await aiChat(m, code, msgs);
+      setMsgs((p) =>
+        p.map((x) => (x.loading ? { ...x, content: r, loading: false } : x))
+      );
+    } catch {
+      setMsgs((p) =>
+        p.map((x) =>
+          x.loading
+            ? { ...x, content: "AI unavailable. Try again.", loading: false }
+            : x
+        )
+      );
+    }
     setLoading(false);
   };
-  const QUICK=["What are the biggest security risks?","How to improve performance?","Explain SQL injection in my code","What unit tests should I write?"];
+ 
+  const QUICK = [
+    "What are the biggest security risks?",
+    "How to improve performance?",
+    "Explain SQL injection in my code",
+    "What unit tests should I write?",
+  ];
+ 
   return (
-    <div style={{display:"flex",flexDirection:"column",height:"calc(100vh - 220px)",minHeight:400}}>
-      <div style={{flex:1,overflowY:"auto",display:"flex",flexDirection:"column",gap:12,paddingBottom:8}}>
-        {msgs.map(m=>(
-          <div key={m.id} style={{display:"flex",flexDirection:m.role==="user"?"row-reverse":"row",gap:10,alignItems:"flex-start",animation:"fadeUp 0.22s both"}}>
-            <div style={{width:28,height:28,borderRadius:"50%",flexShrink:0,background:m.role==="user"?`linear-gradient(135deg,${t.blueDark},${t.blue})`:"linear-gradient(135deg,#7c3aed,#4f46e5)",display:"flex",alignItems:"center",justifyContent:"center",fontSize:10,fontWeight:700,color:"#fff"}}>
-              {m.role==="user"?"U":"G"}
+    <div
+      style={{
+        display: "flex",
+        flexDirection: "column",
+        height: "calc(100vh - 220px)",
+        minHeight: 400,
+      }}
+    >
+      <div
+        style={{
+          flex: 1,
+          overflowY: "auto",
+          display: "flex",
+          flexDirection: "column",
+          gap: 12,
+          paddingBottom: 8,
+        }}
+      >
+        {msgs.map((m) => (
+          <div
+            key={m.id}
+            style={{
+              display: "flex",
+              flexDirection: m.role === "user" ? "row-reverse" : "row",
+              gap: 10,
+              alignItems: "flex-start",
+              animation: "fadeUp 0.22s both",
+            }}
+          >
+            <div
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: "50%",
+                flexShrink: 0,
+                background:
+                  m.role === "user"
+                    ? `linear-gradient(135deg,${t.blueDark},${t.blue})`
+                    : "linear-gradient(135deg,#7c3aed,#4f46e5)",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                fontSize: 10,
+                fontWeight: 700,
+                color: "#fff",
+              }}
+            >
+              {m.role === "user" ? "U" : "G"}
             </div>
-            <div style={{maxWidth:"75%",padding:"10px 14px",borderRadius:m.role==="user"?"14px 4px 14px 14px":"4px 14px 14px 14px",background:m.role==="user"?`linear-gradient(135deg,${t.blueDark},${t.blue})`:t.card2,border:m.role==="user"?"none":`1px solid ${t.border}`,color:m.role==="user"?"#fff":t.text,fontSize:12,lineHeight:1.75,fontFamily:"'JetBrains Mono',monospace",whiteSpace:"pre-wrap",wordBreak:"break-word"}}>
-              {(m as any).loading?<div style={{display:"flex",gap:4}}>{[0,.2,.4].map((d,i)=><div key={i} style={{width:6,height:6,borderRadius:"50%",background:t.blue,animation:`pulse 1.2s ${d}s infinite`}}/>)}</div>:m.content}
+            <div
+              style={{
+                maxWidth: "75%",
+                padding: "10px 14px",
+                borderRadius:
+                  m.role === "user"
+                    ? "14px 4px 14px 14px"
+                    : "4px 14px 14px 14px",
+                background:
+                  m.role === "user"
+                    ? `linear-gradient(135deg,${t.blueDark},${t.blue})`
+                    : t.card2,
+                border:
+                  m.role === "user" ? "none" : `1px solid ${t.border}`,
+                color: m.role === "user" ? "#fff" : t.text,
+                fontSize: 12,
+                lineHeight: 1.75,
+                fontFamily: "'JetBrains Mono',monospace",
+                whiteSpace: "pre-wrap",
+                wordBreak: "break-word",
+              }}
+            >
+              {m.loading ? (
+                <div style={{ display: "flex", gap: 4 }}>
+                  {[0, 0.2, 0.4].map((d, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        width: 6,
+                        height: 6,
+                        borderRadius: "50%",
+                        background: t.blue,
+                        animation: `pulse 1.2s ${d}s infinite`,
+                      }}
+                    />
+                  ))}
+                </div>
+              ) : (
+                m.content
+              )}
             </div>
           </div>
         ))}
-        <div ref={bottomRef}/>
+        <div ref={bottomRef} />
       </div>
-      {msgs.length<=1&&<div style={{display:"flex",flexWrap:"wrap",gap:6,marginBottom:10}}>{QUICK.map(q=><button key={q} onClick={()=>send(q)} style={{padding:"5px 12px",fontSize:10,borderRadius:20,background:"transparent",border:`1px solid ${t.border2}`,color:t.blue,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace",transition:"all 0.18s"}}>{q.length>40?q.slice(0,40)+"…":q}</button>)}</div>}
-      <div style={{display:"flex",gap:8,alignItems:"flex-end",background:t.card,border:`1px solid ${t.border}`,borderRadius:14,padding:"8px 12px"}}>
-        <textarea value={input} onChange={e=>setInput(e.target.value)} onKeyDown={e=>{if(e.key==="Enter"&&!e.shiftKey){e.preventDefault();send();}}} placeholder="Ask about your code… (Enter to send)" rows={1}
-          style={{flex:1,background:"transparent",border:"none",outline:"none",resize:"none",color:t.text,fontFamily:"'JetBrains Mono',monospace",fontSize:12,lineHeight:1.6,maxHeight:100}}
-          onInput={e=>{(e.target as any).style.height="auto";(e.target as any).style.height=Math.min((e.target as any).scrollHeight,100)+"px";}}/>
-        <button onClick={()=>send()} disabled={loading||!input.trim()} style={{width:34,height:34,borderRadius:9,border:"none",cursor:"pointer",background:loading||!input.trim()?t.border2:`linear-gradient(135deg,${t.blueDark},${t.blue})`,color:"#fff",fontSize:14,display:"flex",alignItems:"center",justifyContent:"center",transition:"all 0.18s",flexShrink:0}}>
-          {loading?<div style={{width:12,height:12,borderRadius:"50%",border:"2px solid rgba(255,255,255,0.3)",borderTopColor:"#fff",animation:"spin 0.7s linear infinite"}}/>:"↑"}
+ 
+      {msgs.length <= 1 && (
+        <div
+          style={{
+            display: "flex",
+            flexWrap: "wrap",
+            gap: 6,
+            marginBottom: 10,
+          }}
+        >
+          {QUICK.map((q) => (
+            <button
+              key={q}
+              onClick={() => send(q)}
+              style={{
+                padding: "5px 12px",
+                fontSize: 10,
+                borderRadius: 20,
+                background: "transparent",
+                border: `1px solid ${t.border2}`,
+                color: t.blue,
+                cursor: "pointer",
+                fontFamily: "'JetBrains Mono',monospace",
+                transition: "all 0.18s",
+              }}
+            >
+              {q.length > 40 ? q.slice(0, 40) + "…" : q}
+            </button>
+          ))}
+        </div>
+      )}
+ 
+      <div
+        style={{
+          display: "flex",
+          gap: 8,
+          alignItems: "flex-end",
+          background: t.card,
+          border: `1px solid ${t.border}`,
+          borderRadius: 14,
+          padding: "8px 12px",
+        }}
+      >
+        <textarea
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              send();
+            }
+          }}
+          placeholder="Ask about your code… (Enter to send)"
+          rows={1}
+          style={{
+            flex: 1,
+            background: "transparent",
+            border: "none",
+            outline: "none",
+            resize: "none",
+            color: t.text,
+            fontFamily: "'JetBrains Mono',monospace",
+            fontSize: 12,
+            lineHeight: 1.6,
+            maxHeight: 100,
+          }}
+          onInput={(e) => {
+            (e.target as any).style.height = "auto";
+            (e.target as any).style.height =
+              Math.min((e.target as any).scrollHeight, 100) + "px";
+          }}
+        />
+        <button
+          onClick={() => send()}
+          disabled={loading || !input.trim()}
+          style={{
+            width: 34,
+            height: 34,
+            borderRadius: 9,
+            border: "none",
+            cursor: "pointer",
+            background:
+              loading || !input.trim()
+                ? t.border2
+                : `linear-gradient(135deg,${t.blueDark},${t.blue})`,
+            color: "#fff",
+            fontSize: 14,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.18s",
+            flexShrink: 0,
+          }}
+        >
+          {loading ? (
+            <div
+              style={{
+                width: 12,
+                height: 12,
+                borderRadius: "50%",
+                border: "2px solid rgba(255,255,255,0.3)",
+                borderTopColor: "#fff",
+                animation: "spin 0.7s linear infinite",
+              }}
+            />
+          ) : (
+            "↑"
+          )}
         </button>
       </div>
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────────────────────────
-// COMPLEXITY PANEL
+// COMPLEXITY PANEL — unchanged, included for completeness
 // ─────────────────────────────────────────────────────────────────
-function ComplexityPanel({ results, t }:any) {
+function ComplexityPanel({ results, t }: any) {
   const items = COMPLEXITY_DATA;
-  const cc = results?.complexity?.cyclomatic||1;
-  const md = results?.complexity?.maxDepth||0;
+  const cc = results?.complexity?.cyclomatic || 1;
+  const md = results?.complexity?.maxDepth || 0;
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-        {[{v:cc,l:"Cyclomatic Complexity",c:cc>10?t.red:cc>5?t.orange:t.green},{v:md,l:"Max Nesting Depth",c:md>4?t.red:md>2?t.orange:t.green},{v:`${cc>10?"High":cc>5?"Medium":"Low"}`,l:"Risk Level",c:cc>10?t.red:cc>5?t.orange:t.green}].map(x=>(
-          <div key={x.l} className="score-hover" style={{flex:1,minWidth:100,background:t.card,border:`1px solid ${t.border}`,borderRadius:12,padding:14,textAlign:"center"}}>
-            <div style={{fontSize:24,fontWeight:900,color:x.c,fontFamily:"'Syne',sans-serif"}}>{x.v}</div>
-            <div style={{fontSize:9,color:t.textFaint,marginTop:4,fontFamily:"'JetBrains Mono',monospace",textTransform:"uppercase" as const,letterSpacing:"0.5px"}}>{x.l}</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        {[
+          {
+            v: cc,
+            l: "Cyclomatic Complexity",
+            c: cc > 10 ? t.red : cc > 5 ? t.orange : t.green,
+          },
+          {
+            v: md,
+            l: "Max Nesting Depth",
+            c: md > 4 ? t.red : md > 2 ? t.orange : t.green,
+          },
+          {
+            v: `${cc > 10 ? "High" : cc > 5 ? "Medium" : "Low"}`,
+            l: "Risk Level",
+            c: cc > 10 ? t.red : cc > 5 ? t.orange : t.green,
+          },
+        ].map((x) => (
+          <div
+            key={x.l}
+            className="score-hover"
+            style={{
+              flex: 1,
+              minWidth: 100,
+              background: t.card,
+              border: `1px solid ${t.border}`,
+              borderRadius: 12,
+              padding: 14,
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 24,
+                fontWeight: 900,
+                color: x.c,
+                fontFamily: "'Syne',sans-serif",
+              }}
+            >
+              {x.v}
+            </div>
+            <div
+              style={{
+                fontSize: 9,
+                color: t.textFaint,
+                marginTop: 4,
+                fontFamily: "'JetBrains Mono',monospace",
+                textTransform: "uppercase" as const,
+                letterSpacing: "0.5px",
+              }}
+            >
+              {x.l}
+            </div>
           </div>
         ))}
       </div>
-      <div className="complexity-grid" style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-        {items.map((item,i)=>{
-          const lc=LVL[item.level];
+      <div
+        className="complexity-grid"
+        style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+      >
+        {items.map((item: any, i: number) => {
+          const lc = LVL[item.level];
           return (
-            <div key={item.fn} className="card-hover" style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:12,padding:16,animation:`fadeUp 0.3s ${i*0.08}s both`}}>
-              <div style={{fontSize:12,fontWeight:600,color:t.text,fontFamily:"'JetBrains Mono',monospace",marginBottom:8}}>{item.fn}</div>
-              <div style={{display:"flex",gap:6,marginBottom:10,flexWrap:"wrap"}}>
-                <span style={{fontSize:9,padding:"2px 8px",borderRadius:4,background:lc.tag,color:lc.tc,fontFamily:"'JetBrains Mono',monospace"}}>{item.notation} · {item.level.charAt(0).toUpperCase()+item.level.slice(1)}</span>
-                <span style={{fontSize:9,padding:"2px 8px",borderRadius:4,background:lc.tag,color:lc.tc,fontFamily:"'JetBrains Mono',monospace"}}>CC: {item.cc}</span>
+            <div
+              key={item.fn}
+              className="card-hover"
+              style={{
+                background: t.card,
+                border: `1px solid ${t.border}`,
+                borderRadius: 12,
+                padding: 16,
+                animation: `fadeUp 0.3s ${i * 0.08}s both`,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 12,
+                  fontWeight: 600,
+                  color: t.text,
+                  fontFamily: "'JetBrains Mono',monospace",
+                  marginBottom: 8,
+                }}
+              >
+                {item.fn}
               </div>
-              <div style={{height:5,background:t.border,borderRadius:3,marginBottom:8}}>
-                <div style={{height:5,width:`${item.pct}%`,background:lc.bar,borderRadius:3,boxShadow:`0 0 8px ${lc.bar}50`,transition:"width 0.9s cubic-bezier(0.22,1,0.36,1)"}}/>
+              <div
+                style={{
+                  display: "flex",
+                  gap: 6,
+                  marginBottom: 10,
+                  flexWrap: "wrap",
+                }}
+              >
+                <span
+                  style={{
+                    fontSize: 9,
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: lc.tag,
+                    color: lc.tc,
+                    fontFamily: "'JetBrains Mono',monospace",
+                  }}
+                >
+                  {item.notation} ·{" "}
+                  {item.level.charAt(0).toUpperCase() + item.level.slice(1)}
+                </span>
+                <span
+                  style={{
+                    fontSize: 9,
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: lc.tag,
+                    color: lc.tc,
+                    fontFamily: "'JetBrains Mono',monospace",
+                  }}
+                >
+                  CC: {item.cc}
+                </span>
               </div>
-              <div style={{fontSize:10,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace",lineHeight:1.6}}>💡 {item.tip}</div>
+              <div
+                style={{
+                  height: 5,
+                  background: t.border,
+                  borderRadius: 3,
+                  marginBottom: 8,
+                }}
+              >
+                <div
+                  style={{
+                    height: 5,
+                    width: `${item.pct}%`,
+                    background: lc.bar,
+                    borderRadius: 3,
+                    boxShadow: `0 0 8px ${lc.bar}50`,
+                    transition: "width 0.9s cubic-bezier(0.22,1,0.36,1)",
+                  }}
+                />
+              </div>
+              <div
+                style={{
+                  fontSize: 10,
+                  color: t.textFaint,
+                  fontFamily: "'JetBrains Mono',monospace",
+                  lineHeight: 1.6,
+                }}
+              >
+                💡 {item.tip}
+              </div>
             </div>
           );
         })}
@@ -964,140 +1304,630 @@ function ComplexityPanel({ results, t }:any) {
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────────────────────────
-// HISTORY PANEL (inline)
+// HISTORY PANEL — FIXED: JSX now inside component, setSel defined,
+//                 "Closegit commit..." text cleaned up
 // ─────────────────────────────────────────────────────────────────
-<div style={{display:"flex",gap:8}}>
-  <button
-    onClick={e=>{
-      e.stopPropagation();
-      onRestoreCode(h.codeSnippet,h.language);
-    }}
-    style={{
-      padding:"5px 12px",
-      fontSize:11,
-      borderRadius:8,
-      cursor:"pointer",
-      background:`linear-gradient(135deg,${t.blueDark},${t.blue})`,
-      color:"#fff",
-      border:"none",
-      fontFamily:"'JetBrains Mono',monospace",
-      fontWeight:600
-    }}
-  >
-    Load Code
-  </button>
-
-  <button
-    style={{
-      padding:"5px 12px",
-      fontSize:11,
-      borderRadius:8,
-      cursor:"pointer",
-      background:"transparent",
-      border:`1px solid ${t.border2}`,
-      color:t.textFaint,
-      fontFamily:"'JetBrains Mono',monospace"
-    }}
-    onClick={(e:any)=>{
-      e.stopPropagation();
-      setSel(null);
-    }}
-  >
-    Close
-  </button>
-</div>
-
-// ─────────────────────────────────────────────────────────────────
-// SETTINGS PANEL (inline)
-// ─────────────────────────────────────────────────────────────────
-function SettingsPanel({ settings, onSettingsChange, t, themeName, setTheme }:any) {
-  const [saved,setSaved]=useState(false);
-  const upd=(k:string,v:any)=>onSettingsChange({...settings,[k]:v});
-  const Toggle=({val,onChange}:any)=>(
-    <div onClick={()=>onChange(!val)} style={{width:38,height:21,borderRadius:12,cursor:"pointer",background:val?t.blue:t.border2,position:"relative",transition:"background 0.25s",flexShrink:0}}>
-      <div style={{position:"absolute",width:15,height:15,background:"#fff",borderRadius:"50%",top:3,left:val?20:3,transition:"left 0.25s cubic-bezier(0.22,1,0.36,1)",boxShadow:"0 1px 4px rgba(0,0,0,0.3)"}}/>
+function HistoryPanel({ t, onRestoreCode }: any) {
+  const [sel, setSel] = useState<any>(null);
+  const [historyList, setHistoryList] = useState<any[]>([]);
+ 
+  useEffect(() => {
+    try {
+      const raw = localStorage.getItem("guru_ai_history");
+      if (raw) setHistoryList(JSON.parse(raw));
+    } catch {}
+  }, []);
+ 
+  return (
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      {historyList.length === 0 && (
+        <div
+          style={{
+            padding: "20px",
+            textAlign: "center",
+            color: t.textFaint,
+            fontFamily: "'JetBrains Mono',monospace",
+            fontSize: 12,
+          }}
+        >
+          No scan history yet. Run a scan to save results.
+        </div>
+      )}
+ 
+      {historyList.map((h: any, idx: number) => (
+        <div
+          key={h.id || idx}
+          className="card-hover"
+          style={{
+            background: t.card,
+            border: `1px solid ${sel?.id === h.id ? t.blue : t.border}`,
+            borderRadius: 12,
+            padding: 14,
+            cursor: "pointer",
+            animation: `slideLeft 0.25s ${idx * 0.06}s both`,
+          }}
+          onClick={() => setSel(sel?.id === h.id ? null : h)}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 6,
+              flexWrap: "wrap",
+            }}
+          >
+            <span
+              style={{
+                fontSize: 10,
+                color: t.textFaint,
+                fontFamily: "'JetBrains Mono',monospace",
+              }}
+            >
+              {new Date(h.timestamp || Date.now()).toLocaleString()}
+            </span>
+            <span
+              style={{
+                fontSize: 10,
+                padding: "1px 8px",
+                borderRadius: 4,
+                background: `${t.blue}15`,
+                color: t.blue,
+                fontFamily: "'JetBrains Mono',monospace",
+              }}
+            >
+              {h.language || "Unknown"}
+            </span>
+            {h.results?.critical > 0 && (
+              <span
+                style={{
+                  fontSize: 10,
+                  padding: "1px 8px",
+                  borderRadius: 4,
+                  background: t.redBg,
+                  color: t.redText,
+                  fontFamily: "'JetBrains Mono',monospace",
+                }}
+              >
+                {h.results.critical} critical
+              </span>
+            )}
+          </div>
+          <div
+            style={{
+              fontSize: 11,
+              color: t.textDim,
+              fontFamily: "'JetBrains Mono',monospace",
+            }}
+          >
+            {(h.codeSnippet || "").slice(0, 60)}
+            {(h.codeSnippet || "").length > 60 ? "…" : ""}
+          </div>
+ 
+          {sel?.id === h.id && (
+            <div
+              style={{ display: "flex", gap: 8, marginTop: 10 }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onRestoreCode(h.codeSnippet, h.language);
+                }}
+                style={{
+                  padding: "5px 12px",
+                  fontSize: 11,
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  background: `linear-gradient(135deg,${t.blueDark},${t.blue})`,
+                  color: "#fff",
+                  border: "none",
+                  fontFamily: "'JetBrains Mono',monospace",
+                  fontWeight: 600,
+                }}
+              >
+                Load Code
+              </button>
+ 
+              <button
+                style={{
+                  padding: "5px 12px",
+                  fontSize: 11,
+                  borderRadius: 8,
+                  cursor: "pointer",
+                  background: "transparent",
+                  border: `1px solid ${t.border2}`,
+                  color: t.textFaint,
+                  fontFamily: "'JetBrains Mono',monospace",
+                }}
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setSel(null);
+                }}
+              >
+                Close
+              </button>
+            </div>
+          )}
+        </div>
+      ))}
     </div>
   );
-  const Row=({label,desc,children}:any)=>(
-    <div style={{display:"flex",alignItems:"center",gap:12,padding:"10px 0",borderBottom:`1px solid ${t.border}`}}>
-      <div style={{flex:1}}>
-        <div style={{fontSize:12,color:t.text,fontFamily:"'JetBrains Mono',monospace",fontWeight:500}}>{label}</div>
-        {desc&&<div style={{fontSize:10,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace",marginTop:2}}>{desc}</div>}
+}
+ 
+// ─────────────────────────────────────────────────────────────────
+// SETTINGS PANEL — unchanged
+// ─────────────────────────────────────────────────────────────────
+function SettingsPanel({ settings, onSettingsChange, t, themeName, setTheme }: any) {
+  const [saved, setSaved] = useState(false);
+  const upd = (k: string, v: any) => onSettingsChange({ ...settings, [k]: v });
+ 
+  const Toggle = ({ val, onChange }: any) => (
+    <div
+      onClick={() => onChange(!val)}
+      style={{
+        width: 38,
+        height: 21,
+        borderRadius: 12,
+        cursor: "pointer",
+        background: val ? t.blue : t.border2,
+        position: "relative",
+        transition: "background 0.25s",
+        flexShrink: 0,
+      }}
+    >
+      <div
+        style={{
+          position: "absolute",
+          width: 15,
+          height: 15,
+          background: "#fff",
+          borderRadius: "50%",
+          top: 3,
+          left: val ? 20 : 3,
+          transition: "left 0.25s cubic-bezier(0.22,1,0.36,1)",
+          boxShadow: "0 1px 4px rgba(0,0,0,0.3)",
+        }}
+      />
+    </div>
+  );
+ 
+  const Row = ({ label, desc, children }: any) => (
+    <div
+      style={{
+        display: "flex",
+        alignItems: "center",
+        gap: 12,
+        padding: "10px 0",
+        borderBottom: `1px solid ${t.border}`,
+      }}
+    >
+      <div style={{ flex: 1 }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: t.text,
+            fontFamily: "'JetBrains Mono',monospace",
+            fontWeight: 500,
+          }}
+        >
+          {label}
+        </div>
+        {desc && (
+          <div
+            style={{
+              fontSize: 10,
+              color: t.textFaint,
+              fontFamily: "'JetBrains Mono',monospace",
+              marginTop: 2,
+            }}
+          >
+            {desc}
+          </div>
+        )}
       </div>
       {children}
     </div>
   );
-  const save=()=>{ try{localStorage.setItem("guru_ai_settings",JSON.stringify(settings));setSaved(true);setTimeout(()=>setSaved(false),2000);}catch{} };
+ 
+  const save = () => {
+    try {
+      localStorage.setItem("guru_ai_settings", JSON.stringify(settings));
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch {}
+  };
+ 
   return (
-    <div style={{maxWidth:600}}>
-      <div style={{fontSize:9,color:t.textFaint,textTransform:"uppercase" as const,letterSpacing:"0.8px",marginBottom:12,fontFamily:"'JetBrains Mono',monospace"}}>── Appearance ──</div>
-      <div style={{marginBottom:16}}>
-        <div style={{fontSize:12,color:t.text,fontFamily:"'JetBrains Mono',monospace",fontWeight:500,marginBottom:10}}>Theme</div>
-        <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-          {[{key:"dark",label:"🌙 Dark"},{key:"cyberpunk",label:"⚡ Cyberpunk"},{key:"light",label:"☀️ Light"}].map(th=>(
-            <div key={th.key} onClick={()=>setTheme(th.key)} style={{padding:"9px 16px",borderRadius:10,cursor:"pointer",background:themeName===th.key?`${t.blue}15`:t.card,border:`1px solid ${themeName===th.key?t.blue:t.border}`,transition:"all 0.18s",flex:1}}>
-              <div style={{fontSize:13,color:themeName===th.key?t.blue:t.text,fontFamily:"'JetBrains Mono',monospace",fontWeight:themeName===th.key?700:400}}>{th.label}</div>
+    <div style={{ maxWidth: 600 }}>
+      <div
+        style={{
+          fontSize: 9,
+          color: t.textFaint,
+          textTransform: "uppercase" as const,
+          letterSpacing: "0.8px",
+          marginBottom: 12,
+          fontFamily: "'JetBrains Mono',monospace",
+        }}
+      >
+        ── Appearance ──
+      </div>
+      <div style={{ marginBottom: 16 }}>
+        <div
+          style={{
+            fontSize: 12,
+            color: t.text,
+            fontFamily: "'JetBrains Mono',monospace",
+            fontWeight: 500,
+            marginBottom: 10,
+          }}
+        >
+          Theme
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {[
+            { key: "dark", label: "🌙 Dark" },
+            { key: "cyberpunk", label: "⚡ Cyberpunk" },
+            { key: "light", label: "☀️ Light" },
+          ].map((th) => (
+            <div
+              key={th.key}
+              onClick={() => setTheme(th.key)}
+              style={{
+                padding: "9px 16px",
+                borderRadius: 10,
+                cursor: "pointer",
+                background:
+                  themeName === th.key ? `${t.blue}15` : t.card,
+                border: `1px solid ${
+                  themeName === th.key ? t.blue : t.border
+                }`,
+                transition: "all 0.18s",
+                flex: 1,
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 13,
+                  color: themeName === th.key ? t.blue : t.text,
+                  fontFamily: "'JetBrains Mono',monospace",
+                  fontWeight: themeName === th.key ? 700 : 400,
+                }}
+              >
+                {th.label}
+              </div>
             </div>
           ))}
         </div>
       </div>
       <Row label="Font Size" desc={`Editor font: ${settings.fontSize}px`}>
-        <div style={{display:"flex",alignItems:"center",gap:10,width:180}}>
-          <input type="range" min={11} max={18} value={settings.fontSize} onChange={e=>upd("fontSize",+e.target.value)} style={{flex:1,accentColor:t.blue,cursor:"pointer"}}/>
-          <span style={{fontSize:11,color:t.blue,fontFamily:"'JetBrains Mono',monospace",minWidth:28}}>{settings.fontSize}px</span>
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 10,
+            width: 180,
+          }}
+        >
+          <input
+            type="range"
+            min={11}
+            max={18}
+            value={settings.fontSize}
+            onChange={(e) => upd("fontSize", +e.target.value)}
+            style={{ flex: 1, accentColor: t.blue, cursor: "pointer" }}
+          />
+          <span
+            style={{
+              fontSize: 11,
+              color: t.blue,
+              fontFamily: "'JetBrains Mono',monospace",
+              minWidth: 28,
+            }}
+          >
+            {settings.fontSize}px
+          </span>
         </div>
       </Row>
-      <Row label="3D Particles" desc="WebGL background effect"><Toggle val={settings.particlesEnabled} onChange={(v:boolean)=>upd("particlesEnabled",v)}/></Row>
-      <Row label="Animations" desc="Panel transitions"><Toggle val={settings.animationsEnabled} onChange={(v:boolean)=>upd("animationsEnabled",v)}/></Row>
-      <Row label="Line Numbers" desc="Show line numbers in editor"><Toggle val={settings.showLineNumbers} onChange={(v:boolean)=>upd("showLineNumbers",v)}/></Row>
-      <Row label="Auto-detect Language" desc="Detect language on paste"><Toggle val={settings.autoDetectLang} onChange={(v:boolean)=>upd("autoDetectLang",v)}/></Row>
-      <Row label="Highlight Error Lines" desc="Red glow on issue lines"><Toggle val={settings.highlightErrors} onChange={(v:boolean)=>upd("highlightErrors",v)}/></Row>
-      <Row label="Save History" desc="Store last 20 scans locally"><Toggle val={settings.saveHistory} onChange={(v:boolean)=>upd("saveHistory",v)}/></Row>
-      <div style={{marginTop:20,display:"flex",gap:10}}>
-        <button onClick={save} className="btn-primary" style={{padding:"9px 20px",fontSize:12,fontWeight:700}}>{saved?"✓ Saved!":"Save Settings"}</button>
-        <button onClick={()=>onSettingsChange(DEFAULT_SETTINGS)} style={{padding:"9px 16px",fontSize:12,background:"transparent",border:`1px solid ${t.border2}`,borderRadius:8,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>Reset</button>
+      <Row label="3D Particles" desc="WebGL background effect">
+        <Toggle
+          val={settings.particlesEnabled}
+          onChange={(v: boolean) => upd("particlesEnabled", v)}
+        />
+      </Row>
+      <Row label="Animations" desc="Panel transitions">
+        <Toggle
+          val={settings.animationsEnabled}
+          onChange={(v: boolean) => upd("animationsEnabled", v)}
+        />
+      </Row>
+      <Row label="Line Numbers" desc="Show line numbers in editor">
+        <Toggle
+          val={settings.showLineNumbers}
+          onChange={(v: boolean) => upd("showLineNumbers", v)}
+        />
+      </Row>
+      <Row label="Auto-detect Language" desc="Detect language on paste">
+        <Toggle
+          val={settings.autoDetectLang}
+          onChange={(v: boolean) => upd("autoDetectLang", v)}
+        />
+      </Row>
+      <Row label="Highlight Error Lines" desc="Red glow on issue lines">
+        <Toggle
+          val={settings.highlightErrors}
+          onChange={(v: boolean) => upd("highlightErrors", v)}
+        />
+      </Row>
+      <Row label="Save History" desc="Store last 20 scans locally">
+        <Toggle
+          val={settings.saveHistory}
+          onChange={(v: boolean) => upd("saveHistory", v)}
+        />
+      </Row>
+      <div style={{ marginTop: 20, display: "flex", gap: 10 }}>
+        <button
+          onClick={save}
+          className="btn-primary"
+          style={{ padding: "9px 20px", fontSize: 12, fontWeight: 700 }}
+        >
+          {saved ? "✓ Saved!" : "Save Settings"}
+        </button>
+        <button
+          onClick={() => onSettingsChange(DEFAULT_SETTINGS)}
+          style={{
+            padding: "9px 16px",
+            fontSize: 12,
+            background: "transparent",
+            border: `1px solid ${t.border2}`,
+            borderRadius: 8,
+            color: t.textFaint,
+            fontFamily: "'JetBrains Mono',monospace",
+            cursor: "pointer",
+          }}
+        >
+          Reset
+        </button>
       </div>
-      <div style={{marginTop:16,padding:"10px 14px",background:t.card,border:`1px solid ${t.border}`,borderRadius:10,fontSize:10,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace",lineHeight:1.8}}>
+      <div
+        style={{
+          marginTop: 16,
+          padding: "10px 14px",
+          background: t.card,
+          border: `1px solid ${t.border}`,
+          borderRadius: 10,
+          fontSize: 10,
+          color: t.textFaint,
+          fontFamily: "'JetBrains Mono',monospace",
+          lineHeight: 1.8,
+        }}
+      >
         Guru AI v2.0 · Claude Sonnet 4.6 · Firebase Auth · EmailJS OTP
       </div>
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────────────────────────
-// GITHUB PANEL
+// GITHUB PANEL — unchanged
 // ─────────────────────────────────────────────────────────────────
-function GitHubPanel({ t }:any) {
-  const [scanning,setScanning]=useState<number|null>(null);
-  const [done,setDone]=useState(new Set<number>());
-  const scan=(n:number)=>{ setScanning(n); setTimeout(()=>{ setScanning(null); setDone(p=>new Set([...p,n])); },1800); };
+function GitHubPanel({ t }: any) {
+  const [scanning, setScanning] = useState<number | null>(null);
+  const [done, setDone] = useState(new Set<number>());
+  const scan = (n: number) => {
+    setScanning(n);
+    setTimeout(() => {
+      setScanning(null);
+      setDone((p) => new Set([...p, n]));
+    }, 1800);
+  };
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:10}}>
-      <div style={{display:"flex",alignItems:"center",gap:8,padding:"12px 16px",background:`${t.blue}08`,border:`1px solid ${t.blue}20`,borderRadius:10,flexWrap:"wrap"}}>
-        <div style={{width:8,height:8,borderRadius:"50%",background:t.green,boxShadow:`0 0 6px ${t.green}`}}/>
-        <span style={{fontSize:12,color:t.blue,fontFamily:"'JetBrains Mono',monospace"}}>Connected: <strong>rahulkumar/auth-service</strong></span>
-        <button style={{marginLeft:"auto",padding:"5px 12px",fontSize:11,border:`1px solid ${t.blue}40`,background:`${t.blue}10`,color:t.blue,borderRadius:6,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}}>+ Import Repo</button>
+    <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "12px 16px",
+          background: `${t.blue}08`,
+          border: `1px solid ${t.blue}20`,
+          borderRadius: 10,
+          flexWrap: "wrap",
+        }}
+      >
+        <div
+          style={{
+            width: 8,
+            height: 8,
+            borderRadius: "50%",
+            background: t.green,
+            boxShadow: `0 0 6px ${t.green}`,
+          }}
+        />
+        <span
+          style={{
+            fontSize: 12,
+            color: t.blue,
+            fontFamily: "'JetBrains Mono',monospace",
+          }}
+        >
+          Connected: <strong>rahulkumar/auth-service</strong>
+        </span>
+        <button
+          style={{
+            marginLeft: "auto",
+            padding: "5px 12px",
+            fontSize: 11,
+            border: `1px solid ${t.blue}40`,
+            background: `${t.blue}10`,
+            color: t.blue,
+            borderRadius: 6,
+            cursor: "pointer",
+            fontFamily: "'JetBrains Mono',monospace",
+          }}
+        >
+          + Import Repo
+        </button>
       </div>
-      {PRS.map((pr,idx)=>{
-        const sc=PR_STATUS[pr.status];
-        const isScan=scanning===pr.num, isDone=done.has(pr.num);
+      {PRS.map((pr: any, idx: number) => {
+        const sc = PR_STATUS[pr.status];
+        const isScan = scanning === pr.num;
+        const isDone = done.has(pr.num);
         return (
-          <div key={pr.num} className="card-hover" style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:12,padding:14,animation:`slideLeft 0.25s ${idx*0.08}s both`}}>
-            <div style={{display:"flex",alignItems:"center",gap:8,marginBottom:8,flexWrap:"wrap"}}>
-              <span style={{fontSize:10,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace"}}>#{pr.num}</span>
-              <span style={{fontSize:13,fontWeight:500,color:t.text,flex:1}}>{pr.title}</span>
-              <span style={{fontSize:9,padding:"2px 9px",borderRadius:4,background:sc.bg,color:sc.text,fontFamily:"'JetBrains Mono',monospace",textTransform:"capitalize" as const}}>{pr.status}</span>
+          <div
+            key={pr.num}
+            className="card-hover"
+            style={{
+              background: t.card,
+              border: `1px solid ${t.border}`,
+              borderRadius: 12,
+              padding: 14,
+              animation: `slideLeft 0.25s ${idx * 0.08}s both`,
+            }}
+          >
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                gap: 8,
+                marginBottom: 8,
+                flexWrap: "wrap",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: 10,
+                  color: t.textFaint,
+                  fontFamily: "'JetBrains Mono',monospace",
+                }}
+              >
+                #{pr.num}
+              </span>
+              <span
+                style={{ fontSize: 13, fontWeight: 500, color: t.text, flex: 1 }}
+              >
+                {pr.title}
+              </span>
+              <span
+                style={{
+                  fontSize: 9,
+                  padding: "2px 9px",
+                  borderRadius: 4,
+                  background: sc.bg,
+                  color: sc.text,
+                  fontFamily: "'JetBrains Mono',monospace",
+                  textTransform: "capitalize" as const,
+                }}
+              >
+                {pr.status}
+              </span>
             </div>
-            <div style={{fontSize:10,color:t.textFaint,fontFamily:"'JetBrains Mono',monospace",marginBottom:10}}>+{pr.adds} lines · {pr.files} files · @{pr.author}</div>
-            <div style={{display:"flex",gap:6,alignItems:"center",flexWrap:"wrap"}}>
-              {pr.crit>0&&<span style={{fontSize:9,padding:"2px 8px",borderRadius:4,background:t.redBg,color:t.redText,fontFamily:"'JetBrains Mono',monospace"}}>{pr.crit} critical</span>}
-              {pr.warn>0&&<span style={{fontSize:9,padding:"2px 8px",borderRadius:4,background:t.orangeBg,color:t.orange,fontFamily:"'JetBrains Mono',monospace"}}>{pr.warn} warnings</span>}
-              {!pr.crit&&!pr.warn&&!isDone&&<span style={{fontSize:9,padding:"2px 8px",borderRadius:4,background:t.greenBg,color:t.green,fontFamily:"'JetBrains Mono',monospace"}}>Clean</span>}
-              {isDone&&<span style={{fontSize:9,padding:"2px 8px",borderRadius:4,background:t.greenBg,color:t.green,fontFamily:"'JetBrains Mono',monospace"}}>✓ AI Scanned</span>}
-              <button style={{marginLeft:"auto",padding:"5px 12px",fontSize:10,border:`1px solid ${t.blue}40`,background:`${t.blue}10`,color:t.blue,borderRadius:6,cursor:"pointer",fontFamily:"'JetBrains Mono',monospace"}} onClick={()=>scan(pr.num)} disabled={isScan||isDone}>
-                {isScan?<span style={{display:"flex",alignItems:"center",gap:6}}><Spinner size={10} color={t.blue}/> Scanning...</span>:isDone?"✓ Done":"AI Scan"}
+            <div
+              style={{
+                fontSize: 10,
+                color: t.textFaint,
+                fontFamily: "'JetBrains Mono',monospace",
+                marginBottom: 10,
+              }}
+            >
+              +{pr.adds} lines · {pr.files} files · @{pr.author}
+            </div>
+            <div
+              style={{
+                display: "flex",
+                gap: 6,
+                alignItems: "center",
+                flexWrap: "wrap",
+              }}
+            >
+              {pr.crit > 0 && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: t.redBg,
+                    color: t.redText,
+                    fontFamily: "'JetBrains Mono',monospace",
+                  }}
+                >
+                  {pr.crit} critical
+                </span>
+              )}
+              {pr.warn > 0 && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: t.orangeBg,
+                    color: t.orange,
+                    fontFamily: "'JetBrains Mono',monospace",
+                  }}
+                >
+                  {pr.warn} warnings
+                </span>
+              )}
+              {!pr.crit && !pr.warn && !isDone && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: t.greenBg,
+                    color: t.green,
+                    fontFamily: "'JetBrains Mono',monospace",
+                  }}
+                >
+                  Clean
+                </span>
+              )}
+              {isDone && (
+                <span
+                  style={{
+                    fontSize: 9,
+                    padding: "2px 8px",
+                    borderRadius: 4,
+                    background: t.greenBg,
+                    color: t.green,
+                    fontFamily: "'JetBrains Mono',monospace",
+                  }}
+                >
+                  ✓ AI Scanned
+                </span>
+              )}
+              <button
+                style={{
+                  marginLeft: "auto",
+                  padding: "5px 12px",
+                  fontSize: 10,
+                  border: `1px solid ${t.blue}40`,
+                  background: `${t.blue}10`,
+                  color: t.blue,
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontFamily: "'JetBrains Mono',monospace",
+                }}
+                onClick={() => scan(pr.num)}
+                disabled={isScan || isDone}
+              >
+                {isScan ? (
+                  <span
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    <Spinner size={10} color={t.blue} /> Scanning...
+                  </span>
+                ) : isDone ? (
+                  "✓ Done"
+                ) : (
+                  "AI Scan"
+                )}
               </button>
             </div>
           </div>
@@ -1106,70 +1936,290 @@ function GitHubPanel({ t }:any) {
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────────────────────────
-// EXPORT PANEL
+// EXPORT PANEL — unchanged
 // ─────────────────────────────────────────────────────────────────
-function ExportPanel({ results, t }:any) {
-  const [exp,setExp]=useState(false); const [done,setDone]=useState(false);
-  const go=()=>{ setExp(true); setTimeout(()=>{ setExp(false); setDone(true); },2200); };
-  const rows=[{k:"Date",v:new Date().toLocaleDateString()},{k:"Security",v:`${results?.scores?.security?.toFixed(1)||"N/A"}/10`,d:true},{k:"Issues",v:`${(results?.critical||0)+(results?.warnings||0)} total`,d:(results?.critical||0)>0},{k:"Complexity",v:`CC: ${results?.complexity?.cyclomatic||"N/A"}`},{k:"Lines",v:`${results?.lines||0}`},{k:"Includes",v:"Charts, AST, AI fixes"}];
+function ExportPanel({ results, t }: any) {
+  const [exp, setExp] = useState(false);
+  const [done, setDone] = useState(false);
+  const go = () => {
+    setExp(true);
+    setTimeout(() => {
+      setExp(false);
+      setDone(true);
+    }, 2200);
+  };
+  const rows = [
+    { k: "Date", v: new Date().toLocaleDateString() },
+    {
+      k: "Security",
+      v: `${results?.scores?.security?.toFixed(1) || "N/A"}/10`,
+      d: true,
+    },
+    {
+      k: "Issues",
+      v: `${(results?.critical || 0) + (results?.warnings || 0)} total`,
+      d: (results?.critical || 0) > 0,
+    },
+    { k: "Complexity", v: `CC: ${results?.complexity?.cyclomatic || "N/A"}` },
+    { k: "Lines", v: `${results?.lines || 0}` },
+    { k: "Includes", v: "Charts, AST, AI fixes" },
+  ];
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      <div className="card-hover" style={{background:t.card,border:`1px solid ${t.border}`,borderRadius:12,padding:20}}>
-        <div style={{fontSize:13,fontWeight:600,color:t.text,marginBottom:14,fontFamily:"'JetBrains Mono',monospace"}}>📄 Report Preview</div>
-        {rows.map(r=>(
-          <div key={r.k} style={{display:"flex",justifyContent:"space-between",padding:"7px 0",borderBottom:`1px solid ${t.border}`,fontSize:12,fontFamily:"'JetBrains Mono',monospace"}}>
-            <span style={{color:t.textFaint}}>{r.k}</span>
-            <span style={{color:(r as any).d?t.red:t.textDim,fontWeight:500}}>{r.v}</span>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div
+        className="card-hover"
+        style={{
+          background: t.card,
+          border: `1px solid ${t.border}`,
+          borderRadius: 12,
+          padding: 20,
+        }}
+      >
+        <div
+          style={{
+            fontSize: 13,
+            fontWeight: 600,
+            color: t.text,
+            marginBottom: 14,
+            fontFamily: "'JetBrains Mono',monospace",
+          }}
+        >
+          📄 Report Preview
+        </div>
+        {rows.map((r) => (
+          <div
+            key={r.k}
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              padding: "7px 0",
+              borderBottom: `1px solid ${t.border}`,
+              fontSize: 12,
+              fontFamily: "'JetBrains Mono',monospace",
+            }}
+          >
+            <span style={{ color: t.textFaint }}>{r.k}</span>
+            <span
+              style={{
+                color: (r as any).d ? t.red : t.textDim,
+                fontWeight: 500,
+              }}
+            >
+              {r.v}
+            </span>
           </div>
         ))}
       </div>
-      <div style={{display:"flex",gap:8,flexWrap:"wrap"}}>
-        <button className="btn-primary" style={{padding:"11px 20px",fontSize:12,display:"flex",alignItems:"center",gap:8}} onClick={go} disabled={exp||done}>
-          {exp?<><Spinner color="#fff" size={14}/> Generating...</>:done?"✓ Exported!":"Download PDF"}
+      <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+        <button
+          className="btn-primary"
+          style={{
+            padding: "11px 20px",
+            fontSize: 12,
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+          }}
+          onClick={go}
+          disabled={exp || done}
+        >
+          {exp ? (
+            <>
+              <Spinner color="#fff" size={14} /> Generating...
+            </>
+          ) : done ? (
+            "✓ Exported!"
+          ) : (
+            "Download PDF"
+          )}
         </button>
-        {["Email","Share Link"].map(l=><button key={l} style={{padding:"11px 14px",fontSize:12,background:"transparent",border:`1px solid ${t.border2}`,borderRadius:8,color:t.textDim,fontFamily:"'JetBrains Mono',monospace",cursor:"pointer"}}>{l}</button>)}
+        {["Email", "Share Link"].map((l) => (
+          <button
+            key={l}
+            style={{
+              padding: "11px 14px",
+              fontSize: 12,
+              background: "transparent",
+              border: `1px solid ${t.border2}`,
+              borderRadius: 8,
+              color: t.textDim,
+              fontFamily: "'JetBrains Mono',monospace",
+              cursor: "pointer",
+            }}
+          >
+            {l}
+          </button>
+        ))}
       </div>
-      {done&&<div style={{padding:"10px 14px",background:t.greenBg,border:`1px solid ${t.green}30`,borderRadius:10,fontSize:11,color:t.green,fontFamily:"'JetBrains Mono',monospace",animation:"fadeUp 0.3s both"}}>✓ Saved as guru-ai-report-{new Date().toISOString().slice(0,10)}.pdf</div>}
+      {done && (
+        <div
+          style={{
+            padding: "10px 14px",
+            background: t.greenBg,
+            border: `1px solid ${t.green}30`,
+            borderRadius: 10,
+            fontSize: 11,
+            color: t.green,
+            fontFamily: "'JetBrains Mono',monospace",
+            animation: "fadeUp 0.3s both",
+          }}
+        >
+          ✓ Saved as guru-ai-report-{new Date().toISOString().slice(0, 10)}.pdf
+        </div>
+      )}
     </div>
   );
 }
-
+ 
 // ─────────────────────────────────────────────────────────────────
-// DEBT PANEL
+// DEBT PANEL — unchanged
 // ─────────────────────────────────────────────────────────────────
-function DebtPanel({ results, t }:any) {
-  const crit=results?.critical||3; const warn=results?.warnings||2;
-  const total=(crit*6)+(warn*4)+2+2;
-  const items=[
-    {icon:"🔒",label:"Security vulnerabilities",hours:crit*2,pct:Math.min(100,crit*25),color:t.red},
-    {icon:"🔄",label:"Complexity refactoring",hours:4,pct:55,color:t.orange},
-    {icon:"🗑️",label:"Dead code removal",hours:2,pct:25,color:t.blue},
-    {icon:"📝",label:"Documentation gaps",hours:2,pct:15,color:t.green},
+function DebtPanel({ results, t }: any) {
+  const crit = results?.critical || 3;
+  const warn = results?.warnings || 2;
+  const total = crit * 6 + warn * 4 + 2 + 2;
+  const items = [
+    {
+      icon: "🔒",
+      label: "Security vulnerabilities",
+      hours: crit * 2,
+      pct: Math.min(100, crit * 25),
+      color: t.red,
+    },
+    { icon: "🔄", label: "Complexity refactoring", hours: 4, pct: 55, color: t.orange },
+    { icon: "🗑️", label: "Dead code removal", hours: 2, pct: 25, color: t.blue },
+    { icon: "📝", label: "Documentation gaps", hours: 2, pct: 15, color: t.green },
   ];
   return (
-    <div style={{display:"flex",flexDirection:"column",gap:12}}>
-      <div style={{display:"flex",gap:10,flexWrap:"wrap"}}>
-        {[{v:crit>3?"High":crit>1?"Medium":"Low",l:"Debt Level",c:crit>3?t.red:crit>1?t.orange:t.green},{v:`${total} hrs`,l:"Est. Refactor",c:t.text},{v:`${Math.min(10,(crit*2+warn*0.8)).toFixed(1)}/10`,l:"Risk Score",c:crit>2?t.red:t.orange}].map(x=>(
-          <div key={x.l} className="score-hover" style={{flex:1,minWidth:100,background:t.card,border:`1px solid ${t.border}`,borderRadius:12,padding:14,textAlign:"center"}}>
-            <div style={{fontSize:24,fontWeight:900,color:x.c,fontFamily:"'Syne',sans-serif"}}>{x.v}</div>
-            <div style={{fontSize:9,color:t.textFaint,marginTop:4,fontFamily:"'JetBrains Mono',monospace",textTransform:"uppercase" as const,letterSpacing:"0.5px"}}>{x.l}</div>
+    <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        {[
+          {
+            v: crit > 3 ? "High" : crit > 1 ? "Medium" : "Low",
+            l: "Debt Level",
+            c: crit > 3 ? t.red : crit > 1 ? t.orange : t.green,
+          },
+          { v: `${total} hrs`, l: "Est. Refactor", c: t.text },
+          {
+            v: `${Math.min(10, crit * 2 + warn * 0.8).toFixed(1)}/10`,
+            l: "Risk Score",
+            c: crit > 2 ? t.red : t.orange,
+          },
+        ].map((x) => (
+          <div
+            key={x.l}
+            className="score-hover"
+            style={{
+              flex: 1,
+              minWidth: 100,
+              background: t.card,
+              border: `1px solid ${t.border}`,
+              borderRadius: 12,
+              padding: 14,
+              textAlign: "center",
+            }}
+          >
+            <div
+              style={{
+                fontSize: 24,
+                fontWeight: 900,
+                color: x.c,
+                fontFamily: "'Syne',sans-serif",
+              }}
+            >
+              {x.v}
+            </div>
+            <div
+              style={{
+                fontSize: 9,
+                color: t.textFaint,
+                marginTop: 4,
+                fontFamily: "'JetBrains Mono',monospace",
+                textTransform: "uppercase" as const,
+                letterSpacing: "0.5px",
+              }}
+            >
+              {x.l}
+            </div>
           </div>
         ))}
       </div>
-      {items.map((item,i)=>(
-        <div key={item.label} style={{display:"flex",alignItems:"center",gap:12,background:t.card,border:`1px solid ${t.border}`,borderRadius:12,padding:"12px 16px",animation:`slideLeft 0.25s ${i*0.07}s both`}}>
-          <span style={{fontSize:18,flexShrink:0}}>{item.icon}</span>
-          <span style={{fontSize:12,color:t.textDim,flex:1,fontFamily:"'JetBrains Mono',monospace"}}>{item.label}</span>
-          <div style={{flex:1,minWidth:80,height:5,background:t.border,borderRadius:3}}>
-            <div style={{height:5,width:`${item.pct}%`,background:item.color,borderRadius:3,boxShadow:`0 0 6px ${item.color}50`}}/>
+      {items.map((item, i) => (
+        <div
+          key={item.label}
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: 12,
+            background: t.card,
+            border: `1px solid ${t.border}`,
+            borderRadius: 12,
+            padding: "12px 16px",
+            animation: `slideLeft 0.25s ${i * 0.07}s both`,
+          }}
+        >
+          <span style={{ fontSize: 18, flexShrink: 0 }}>{item.icon}</span>
+          <span
+            style={{
+              fontSize: 12,
+              color: t.textDim,
+              flex: 1,
+              fontFamily: "'JetBrains Mono',monospace",
+            }}
+          >
+            {item.label}
+          </span>
+          <div
+            style={{
+              flex: 1,
+              minWidth: 80,
+              height: 5,
+              background: t.border,
+              borderRadius: 3,
+            }}
+          >
+            <div
+              style={{
+                height: 5,
+                width: `${item.pct}%`,
+                background: item.color,
+                borderRadius: 3,
+                boxShadow: `0 0 6px ${item.color}50`,
+              }}
+            />
           </div>
-          <span style={{fontSize:12,fontWeight:700,color:item.color,fontFamily:"'JetBrains Mono',monospace",minWidth:44,textAlign:"right"}}>{item.hours} hrs</span>
+          <span
+            style={{
+              fontSize: 12,
+              fontWeight: 700,
+              color: item.color,
+              fontFamily: "'JetBrains Mono',monospace",
+              minWidth: 44,
+              textAlign: "right",
+            }}
+          >
+            {item.hours} hrs
+          </span>
         </div>
       ))}
-      <div style={{padding:"12px 16px",background:`${t.blue}08`,border:`1px solid ${t.blue}20`,borderRadius:12,fontSize:12,color:t.blue,fontFamily:"'JetBrains Mono',monospace",lineHeight:1.7}}>
-        💡 Estimated cost @₹1,200/hr: <strong style={{color:t.text}}>₹{(total*1200).toLocaleString()}</strong>
+      <div
+        style={{
+          padding: "12px 16px",
+          background: `${t.blue}08`,
+          border: `1px solid ${t.blue}20`,
+          borderRadius: 12,
+          fontSize: 12,
+          color: t.blue,
+          fontFamily: "'JetBrains Mono',monospace",
+          lineHeight: 1.7,
+        }}
+      >
+        💡 Estimated cost @₹1,200/hr:{" "}
+        <strong style={{ color: t.text }}>
+          ₹{(total * 1200).toLocaleString()}
+        </strong>
       </div>
     </div>
   );
