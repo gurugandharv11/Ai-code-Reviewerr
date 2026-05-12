@@ -875,7 +875,7 @@ function OverviewPanel({ results, t }:any) {
 // CHAT PANEL
 // ─────────────────────────────────────────────────────────────────
 function ChatPanel({ code, t }: any) {
-  const [msgs, setMsgs] = useState<Msg[]>([
+  const [msgs, setMsgs] = useState<any[]>([
     {
       id: 1,
       role: "ai",
@@ -897,8 +897,8 @@ function ChatPanel({ code, t }: any) {
     const m = (text || input).trim();
     if (!m || loading) return;
     setInput("");
-    const um: Msg = { id: Date.now(), role: "user", content: m, time: Date.now() };
-    const lm: Msg = {
+    const um: any= { id: Date.now(), role: "user", content: m, time: Date.now() };
+    const lm: any= {
       id: Date.now() + 1,
       role: "ai",
       content: "",
@@ -1210,7 +1210,7 @@ function ComplexityPanel({ results, t }: any) {
         style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
       >
         {items.map((item: any, i: number) => {
-          const lc = LVL[item.level];
+          const lc = LVL[item.level as keyof typeof LVL]
           return (
             <div
               key={item.fn}
