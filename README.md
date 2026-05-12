@@ -1,81 +1,71 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
-# React + TypeScript + Vite
+🚀 AI Code Reviewer
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+An advanced AI-powered code analysis platform that reviews source code, detects vulnerabilities, checks complexity, suggests optimizations, and generates intelligent developer insights in real time.
 
-Currently, two official plugins are available:
+🌟 Features
+🔍 Smart AI Code Analysis
+Detects security vulnerabilities
+Finds performance bottlenecks
+Identifies bad coding practices
+Gives AI-generated suggestions
+⚡ Real-Time Reports
+Instant issue detection
+Live complexity analysis
+Security score generation
+Interactive dashboards
+🤖 AI Developer Assistant
+AI chat for code explanation
+Bug fixing suggestions
+Optimization recommendations
+Best-practice guidance
+📊 Advanced Analytics
+Cyclomatic complexity
+Technical debt estimation
+Risk scoring system
+Scan history tracking
+🎨 Modern UI/UX
+Fully responsive design
+Smooth animations
+Dark/Cyberpunk themes
+Monaco code editor integration 
+🖼 Project Screenshots
+🏠 Home Page
+<img width="816" height="775" alt="image" src="https://github.com/user-attachments/assets/c58a92dc-1f3e-4aab-97d5-83bd111109d8" />
+🔍 AI Code Analyzer
+<img width="1917" height="921" alt="image" src="https://github.com/user-attachments/assets/e32bb941-664e-4074-98d3-7a71844ed84c" />
+📊 Security Report Dashboard
+<img width="1641" height="714" alt="image" src="https://github.com/user-attachments/assets/bc7fb4f8-9a41-46f4-8008-f962fc5d6776" />
+AI chatBot
+<img width="1668" height="865" alt="image" src="https://github.com/user-attachments/assets/a76ec2fa-f81b-468a-aa60-69bd6d738b2f" />
+🛠 Tech Stack
+Frontend
+React.js
+TypeScript
+Tailwind CSS
+Framer Motion
+Vite
+Backend
+Node.js
+Express.js
+AI & Services
+OpenAI API
+Firebase Authentication
+EmailJS
+Visualization
+Recharts
+Three.js
+React Three Fiber
+🤝 Contributing
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+Pull requests and contributions are welcome.
 
-## React Compiler
+⭐ Support
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+If you like this project, give it a star ⭐ on GitHub.
 
-## Expanding the ESLint configuration
+👨‍💻 Developer
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+Made with ❤️ by Gandharv
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
-
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
-```
-=======
-# Ai-code-Reviewer
->>>>>>> 5b75208c3fe9e8b69b1265612db7da8a2da6324f
-=======
-# Ai-code-Reviewerr
->>>>>>> 88678489fafdbe39b44d0ea581778a7c3f0efa3d
