@@ -2414,7 +2414,15 @@ export default function App() {
         </nav>
 
         {/* Premium User Card */}
-        <UserCard user={user} t={t} onLogout={()=>setUser(null)}/>
+        <UserCard
+        user={user}
+        t={t}
+        onLogout={()=>{
+          localStorage.clear();
+          sessionStorage.clear();
+          setUser(null);
+  }}
+/>
       </div>
 
       {/* ── MAIN ── */}
