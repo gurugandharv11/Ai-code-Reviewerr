@@ -965,41 +965,22 @@ function EditorPanel({ code, setCode, onAnalyze, analyzing, results, language, s
   );
 }
 //TCAnalysisPanel 
-
 function TCAnalysisPanel({ code, language, t }: any) {
-  const [result, setResult] = useState<any>(null);
-  const [loading, setLoading] = useState(false);
-
-  const analyze = async () => {
-    setLoading(true);
-    const prompt = `Analyze this ${language} code. Return ONLY valid JSON:
-{
-  "tc_best": "O(...)", "tc_avg": "O(...)", "tc_worst": "O(...)", "sc": "O(...)",
-  "tc_reason": "why this TC - mention loops/recursion",
-  "sc_reason": "why this SC - mention data structures",
-  "loop_analysis": [{"line": "loop desc", "contribution": "O(n)"}],
-  "test_cases": [
-    {"id":1,"type":"Basic","input":"actual input","output":"actual output","explanation":"reason"},
-    {"id":2,"type":"Edge","input":"edge input","output":"actual output","explanation":"reason"},
-    {"id":3,"type":"Large","input":"large input","output":"actual output","explanation":"reason"},
-    {"id":4,"type":"Edge","input":"another edge","output":"actual output","explanation":"reason"},
-    {"id":5,"type":"Avg","input":"avg input","output":"actual output","explanation":"reason"}
-  ]
+  return (
+    <div
+      style={{
+        padding: 20,
+        color: "white",
+        fontSize: 20
+      }}
+    >
+      TC Analysis Working 🚀
+    </div>
+  );
 }
-Code:\n\`\`\`\n${code.slice(0,2000)}\n\`\`\`
-IMPORTANT: Test case outputs must be real computed values for this exact code.`;
-    
-    try {
-      const raw = await callAI(prompt);
-      const clean = raw.replace(/```json|```/g,"").trim();
-      const parsed = JSON.parse(clean.slice(clean.indexOf('{'), clean.lastIndexOf('}')+1));
-      setResult(parsed);
-    } catch { setResult(null); }
-    setLoading(false);
-  };
+
 
   // ... render result similar to the widget above
-}
 
 // ─────────────────────────────────────────────────────────────────
 // ISSUES PANEL
